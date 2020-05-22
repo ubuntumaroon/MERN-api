@@ -1,12 +1,15 @@
 const fs = require('fs');
+require('dotenv').config();
 const express = require('express');
 const {ApolloServer, UserInputError} = require('apollo-server-express');
 const {GraphQLScalarType} = require('graphql');
 const {Kind} = require('graphql/language');
 
+
 /** mongo */
 const { MongoClient } = require('mongodb');
-const url =`mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
+const url =process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
+const port = process.env.API_SERVER_PORT || 3000;
 
 let db;
 
@@ -106,13 +109,17 @@ const server = new ApolloServer({
 
 const app = express();
 
-server.applyMiddleware({ app, path: '/graphql' });
+// enbale cross reference, default true
+const enableCors = (process.env.ENABLE_CORS || 'true') == 'true';
+console.log('CORS setting:', enableCors);
+
+server.applyMiddleware({ app, path: '/graphql', cors: enableCors});
 
 (async function() {
   try {
     await connectToDb();
-    app.listen(3000, function(){
-      console.log('API server listening on port: 3000');
+    app.listen(port, function(){
+      console.log(`API server listening on port: ${port}`);
     });
   } catch(error) {
     console.log('Error:!!!!!!!!!!\n', error);

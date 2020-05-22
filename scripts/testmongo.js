@@ -1,6 +1,7 @@
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-const url =`mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
+const url = process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
 
 async function testWithSync() {
   console.log('\n----- test mongodb connections ------');
