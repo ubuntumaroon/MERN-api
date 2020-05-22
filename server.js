@@ -1,19 +1,20 @@
 const fs = require('fs');
 require('dotenv').config();
 const express = require('express');
-const {ApolloServer, UserInputError} = require('apollo-server-express');
-const {GraphQLScalarType} = require('graphql');
-const {Kind} = require('graphql/language');
+const { ApolloServer, UserInputError } = require('apollo-server-express');
+const { GraphQLScalarType } = require('graphql');
+const { Kind } = require('graphql/language');
 
 
 /** mongo */
 const { MongoClient } = require('mongodb');
-const url =process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
+
+const url = process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
 const port = process.env.API_SERVER_PORT || 3000;
 
 let db;
 
-let aboutMessage = "Issue tracker v1.0";
+let aboutMessage = 'Issue tracker v1.0';
 
 const GraphQLDate = new GraphQLScalarType({
   name: 'GraphQLDate',
@@ -23,7 +24,7 @@ const GraphQLDate = new GraphQLScalarType({
   },
 
   parseValue(value) {
-    console.log("value passing in: " + value);
+    console.log(`value passing in: ${value}`);
     const dateValue = new Date(value);
     return isNaN(dateValue) ? undefined : dateValue;
   },
@@ -76,8 +77,8 @@ async function connectToDb() {
 async function getNextSequence(name) {
   const result = await db.collection('counters').findOneAndUpdate(
     { _id: name },
-    { $inc: {current: 1} },
-    { returnOriginal: false }
+    { $inc: { current: 1 } },
+    { returnOriginal: false },
   );
   return result.value.current;
 }
@@ -90,7 +91,7 @@ async function issueAdd(_, { issue }) {
   validateIssue(issue);
   issue.created = new Date();
   issue.id = await getNextSequence('issues') + 1;
-  
+
   const result = await db.collection('issues').insertOne(issue);
   const savedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
   return savedIssue;
@@ -101,27 +102,27 @@ const server = new ApolloServer({
   resolvers,
   GraphQLDate,
 
-  formatError: error => {
+  formatError: (error) => {
     console.log(error);
     return error;
-  }
+  },
 });
 
 const app = express();
 
 // enbale cross reference, default true
-const enableCors = (process.env.ENABLE_CORS || 'true') == 'true';
+const enableCors = (process.env.ENABLE_CORS || 'true') === 'true';
 console.log('CORS setting:', enableCors);
 
-server.applyMiddleware({ app, path: '/graphql', cors: enableCors});
+server.applyMiddleware({ app, path: '/graphql', cors: enableCors });
 
-(async function() {
+(async function () {
   try {
     await connectToDb();
-    app.listen(port, function(){
+    app.listen(port, () => {
       console.log(`API server listening on port: ${port}`);
     });
-  } catch(error) {
+  } catch (error) {
     console.log('Error:!!!!!!!!!!\n', error);
-  };
-})();
+  }
+}());

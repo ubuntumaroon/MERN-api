@@ -5,7 +5,7 @@ const url = process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('W
 
 async function testWithSync() {
   console.log('\n----- test mongodb connections ------');
-  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true  });
+  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
   try {
     await client.connect();
@@ -14,19 +14,17 @@ async function testWithSync() {
     const db = client.db();
     const collection = db.collection('employees');
 
-    const employee = {id: 11, name: {first: "Joe", last: "Jhon"}, age: 20};
+    const employee = { id: 11, name: { first: 'Joe', last: 'Jhon' }, age: 20 };
     const result = await collection.insertOne(employee);
     console.log('Insert result:\n', result);
 
-    const docs = await collection.find({_id: result.insertedId}).toArray();
+    const docs = await collection.find({ _id: result.insertedId }).toArray();
     console.log('Result of find:\n', docs);
-
   } catch (err) {
     console.log(err);
   } finally {
     client.close();
-  }  
+  }
 }
 
 testWithSync();
-
