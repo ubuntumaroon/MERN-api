@@ -1,0 +1,30 @@
+{
+  "name": "mean-book-api",
+  "version": "1.0.0",
+  "description": "MEAN book backend api",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon -e js,graphql server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ubuntumaroon/MEAN-book.git"
+  },
+  "keywords": [
+    "MEAN"
+  ],
+  "author": "feng",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ubuntumaroon/MEAN-book/issues"
+  },
+  "homepage": "https://github.com/ubuntumaroon/MEAN-book#readme",
+  "dependencies": {
+    "apollo-server-express": "^2.13.1",
+    "express": "^4.17.1",
+    "graphql": "^14.6.0",
+    "mongodb": "^3.5.7",
+    "nodemon": "^2.0.4"
+  }
+}

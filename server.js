@@ -1,0 +1,120 @@
+const fs = require('fs');
+const express = require('express');
+const {ApolloServer, UserInputError} = require('apollo-server-express');
+const {GraphQLScalarType} = require('graphql');
+const {Kind} = require('graphql/language');
+
+/** mongo */
+const { MongoClient } = require('mongodb');
+const url =`mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
+
+let db;
+
+let aboutMessage = "Issue tracker v1.0";
+
+const GraphQLDate = new GraphQLScalarType({
+  name: 'GraphQLDate',
+  description: 'GraphQL date type scalar',
+  serialize(value) {
+    return value.toISOString();
+  },
+
+  parseValue(value) {
+    console.log("value passing in: " + value);
+    const dateValue = new Date(value);
+    return isNaN(dateValue) ? undefined : dateValue;
+  },
+  parseLiteral(ast) {
+    if (ast.kind == Kind.STRING) {
+      const dateValue = new Date(ast.value);
+      return isNaN(dateValue) ? undefined : dateValue;
+    }
+  },
+});
+
+function validateIssue(issue) {
+  const errors = [];
+  if (issue.title.length < 3) {
+    errors.push('Title must be at least 3 characters');
+  }
+  if (issue.status == 'Assigned' && !issue.owner) {
+    errors.push('Field "Owner" is required when status is "Assigned".');
+  }
+
+  if (errors.length > 0) {
+    throw new UserInputError('Invalid inputs', { errors });
+  }
+}
+
+const resolvers = {
+  Query: {
+    about: () => aboutMessage,
+    issueList,
+  },
+  Mutation: {
+    setAboutMessage,
+    issueAdd,
+  },
+  GraphQLDate,
+};
+
+async function issueList() {
+  const issues = await db.collection('issues').find({}).toArray();
+  return issues;
+}
+
+async function connectToDb() {
+  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true  });
+  await client.connect();
+  console.log('Connected to MongoDB!!!');
+  db = client.db();
+}
+
+async function getNextSequence(name) {
+  const result = await db.collection('counters').findOneAndUpdate(
+    { _id: name },
+    { $inc: {current: 1} },
+    { returnOriginal: false }
+  );
+  return result.value.current;
+}
+
+function setAboutMessage(_, { message }) {
+  return aboutMessage = message;
+}
+
+async function issueAdd(_, { issue }) {
+  validateIssue(issue);
+  issue.created = new Date();
+  issue.id = await getNextSequence('issues') + 1;
+  
+  const result = await db.collection('issues').insertOne(issue);
+  const savedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
+  return savedIssue;
+}
+
+const server = new ApolloServer({
+  typeDefs: fs.readFileSync('schema.graphql', 'utf-8'),
+  resolvers,
+  GraphQLDate,
+
+  formatError: error => {
+    console.log(error);
+    return error;
+  }
+});
+
+const app = express();
+
+server.applyMiddleware({ app, path: '/graphql' });
+
+(async function() {
+  try {
+    await connectToDb();
+    app.listen(3000, function(){
+      console.log('API server listening on port: 3000');
+    });
+  } catch(error) {
+    console.log('Error:!!!!!!!!!!\n', error);
+  };
+})();
