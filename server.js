@@ -26,13 +26,14 @@ const GraphQLDate = new GraphQLScalarType({
   parseValue(value) {
     console.log(`value passing in: ${value}`);
     const dateValue = new Date(value);
-    return isNaN(dateValue) ? undefined : dateValue;
+    return Number.isNaN(dateValue.getTime()) ? undefined : dateValue;
   },
   parseLiteral(ast) {
-    if (ast.kind == Kind.STRING) {
+    if (ast.kind === Kind.STRING) {
       const dateValue = new Date(ast.value);
-      return isNaN(dateValue) ? undefined : dateValue;
+      return Number.isNaN(dateValue.getTime()) ? undefined : dateValue;
     }
+    return undefined;
   },
 });
 
@@ -41,7 +42,7 @@ function validateIssue(issue) {
   if (issue.title.length < 3) {
     errors.push('Title must be at least 3 characters');
   }
-  if (issue.status == 'Assigned' && !issue.owner) {
+  if (issue.status === 'Assigned' && !issue.owner) {
     errors.push('Field "Owner" is required when status is "Assigned".');
   }
 
@@ -49,18 +50,6 @@ function validateIssue(issue) {
     throw new UserInputError('Invalid inputs', { errors });
   }
 }
-
-const resolvers = {
-  Query: {
-    about: () => aboutMessage,
-    issueList,
-  },
-  Mutation: {
-    setAboutMessage,
-    issueAdd,
-  },
-  GraphQLDate,
-};
 
 async function issueList() {
   const issues = await db.collection('issues').find({}).toArray();
@@ -84,18 +73,32 @@ async function getNextSequence(name) {
 }
 
 function setAboutMessage(_, { message }) {
-  return aboutMessage = message;
+  aboutMessage = message;
+  return aboutMessage;
 }
 
 async function issueAdd(_, { issue }) {
   validateIssue(issue);
-  issue.created = new Date();
-  issue.id = await getNextSequence('issues') + 1;
+  const newIssue = { ...issue };
+  newIssue.created = new Date();
+  newIssue.id = await getNextSequence('issues') + 1;
 
-  const result = await db.collection('issues').insertOne(issue);
+  const result = await db.collection('issues').insertOne(newIssue);
   const savedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
   return savedIssue;
 }
+
+const resolvers = {
+  Query: {
+    about: () => aboutMessage,
+    issueList,
+  },
+  Mutation: {
+    setAboutMessage,
+    issueAdd,
+  },
+  GraphQLDate,
+};
 
 const server = new ApolloServer({
   typeDefs: fs.readFileSync('schema.graphql', 'utf-8'),
@@ -116,7 +119,7 @@ console.log('CORS setting:', enableCors);
 
 server.applyMiddleware({ app, path: '/graphql', cors: enableCors });
 
-(async function () {
+(async function start() {
   try {
     await connectToDb();
     app.listen(port, () => {
