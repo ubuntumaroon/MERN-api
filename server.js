@@ -9,7 +9,6 @@ const app = express();
 // enbale cross reference, default true
 apoloApiHandler.installHandler(app);
 
-
 const port = process.env.API_SERVER_PORT || 3000;
 (async function start() {
   try {

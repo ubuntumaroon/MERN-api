@@ -5,7 +5,7 @@ let db;
 
 async function connectToDb() {
   const url = process.env.DB_URL || `mongodb+srv://dbadmin:${encodeURIComponent('Website@2020')}@cluster0-wh7a0.mongodb.net/issuetracker`;
-  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true  });
+  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
   await client.connect();
   console.log('Connected to MongoDB!!!');
   db = client.db();
