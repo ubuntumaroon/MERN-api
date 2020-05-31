@@ -39,7 +39,21 @@ input IssueInputs {
   description: String
 }
 
+"""
+Inputs for issueUpdate:
+undefined field will remain unmodified
+"""
+input IssueUpdateInputs {
+  title: String
+  status: StatusType
+  owner: String
+  effort: Int
+  due: GraphQLDate
+  description: String
+}
+
 type Mutation {
   setAboutMessage(message: String!): String
   issueAdd(issue: IssueInputs!): Issue!
+  issueUpdate(id: Int!, changes: IssueUpdateInputs!): Issue!
 }
