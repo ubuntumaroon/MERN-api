@@ -73,10 +73,41 @@ async function remove(_, { id }) {
   return false;
 }
 
+async function counts(_, { status, effortMin, effortMax }) {
+  const db = getDb();
+  const filter = {};
+  if (status) filter.status = status;
+  if (effortMin !== undefined || effortMax !== undefined) {
+    filter.effort = {};
+    if (effortMin !== undefined) filter.effort.$gte = effortMin;
+    if (effortMax !== undefined) filter.effort.$lte = effortMax;
+  }
+
+  const results = await db.collection('issues').aggregate([
+    { $match: filter },
+    {
+      $group: {
+        _id: { owner: '$owner', status: '$status' },
+        count: { $sum: 1 },
+      },
+    },
+  ]).toArray();
+
+  const stats = {};
+  results.forEach((res) => {
+    // eslint-disable-next-line no-underscore-dangle
+    const { owner, status: statusKey } = res._id;
+    if (!stats[owner]) stats[owner] = { owner };
+    stats[owner][statusKey] = res.count;
+  });
+  return Object.values(stats);
+}
+
 module.exports = {
   list,
   add,
   get,
   update,
   delete: remove,
+  counts,
 };
