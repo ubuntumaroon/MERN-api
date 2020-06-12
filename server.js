@@ -3,9 +3,11 @@ const express = require('express');
 
 const { connectToDb } = require('./db.js');
 const apoloApiHandler = require('./api_handler.js');
+const auth = require('./auth.js');
 
 const app = express();
 
+app.use('/auth', auth.routes);
 // enbale cross reference, default true
 apoloApiHandler.installHandler(app);
 
