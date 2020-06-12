@@ -1,6 +1,8 @@
 const Router = require('express');
 const bodyParser = require('body-parser');
 const { OAuth2Client } = require('google-auth-library');
+const { AuthenticationError } = require('apollo-server-express');
+
 const jwt = require('jsonwebtoken');
 
 let { JWT_SECRET } = process.env;
@@ -69,4 +71,13 @@ routes.post('/user', (req, res) => {
   res.send(getUser(req));
 });
 
-module.exports = { routes };
+function mustBeSignedIn(resolver) {
+  return (root, args, { user }) => {
+    if (!user || !user.signedIn) {
+      throw new AuthenticationError('You must sign in to access!');
+    }
+    return resolver(root, args, { user });
+  };
+}
+
+module.exports = { routes, getUser, mustBeSignedIn };
