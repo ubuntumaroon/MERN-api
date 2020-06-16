@@ -35,6 +35,8 @@ const server = new ApolloServer({
   resolvers,
   context: getContext,
   GraphQLDate,
+  playground: true,
+  introspection: true,
 
   formatError: (error) => {
     console.log(error);

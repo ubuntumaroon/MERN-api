@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "MEAN book backend api",
   "main": "index.js",
+  "engines": {
+    "node": "14.x",
+    "npm": "6.x"
+  },
   "scripts": {
     "start": "nodemon -e js,graphql -w . -w .env server.js",
     "lint": "eslint .",
