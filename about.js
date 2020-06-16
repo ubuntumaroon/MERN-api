@@ -1,6 +1,6 @@
 const { mustBeSignedIn } = require('./auth.js');
 
-let aboutMessage = 'Issue tracker v1.0';
+let aboutMessage = 'Issue tracker v0.1';
 
 function setMessage(_, { message }) {
   aboutMessage = message;
